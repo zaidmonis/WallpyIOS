@@ -1,52 +1,37 @@
-# WallpyIOS
+# Wallpy iOS — My 2020 Android app, rebuilt for iPhone
 
-WallpyIOS is a SwiftUI rewrite of the original Android Wallpy wallpaper application. It keeps the Firebase-backed catalogue, Imgur thumbnail conventions, and download flow while adopting modern iOS patterns such as Swift Concurrency, SwiftUI, and system sharing.
+This is the iOS clone of **my own** Wallpy Android app (originally released in 2020). Same catalogue and backend, but rewritten with SwiftUI and Swift Concurrency.
 
-## Architecture
+## What it is
+- A wallpaper browser fed by Firebase Realtime Database JSON.
+- Imgur hosts the actual images; Firebase stores Imgur links.
+- Grid is uniform 3-column, 9:16 tiles; detail view shows full quality; saving/sharing uses the original image.
 
-* **SwiftUI** for the UI layer and navigation.
-* **Async/await + URLSession** to read the Realtime Database REST endpoints.
-* **Property lists** (`FirebaseConfig.plist`) for lightweight configuration without hardcoding secrets.
-* **Services + view models** to keep the code modular and testable.
+## Data & infrastructure
+- **Firebase RTDB:** Holds plain JSON lists per category (`All.json`, `Anime.json`, etc.) plus a `CurrentVersion` node for update checks.
+- **Imgur hosting:** Links in Firebase already include quality suffixes (e.g., `...m.jpg`, `...l.jpg`, `...h.jpg`). The app strips suffixes to recover the base/original, then reapplies controlled suffixes when needed.
+  - Grid thumbnails: uses a preferred thumbnail suffix (`l` by default).
+  - Detail, save, share: always fetch the suffix-free original URL.
+- **Config:** `WallpyIOS/WallpyIOS/Config/FirebaseConfig.plist` defines the Firebase database URL, categories, and suffix choices.
+- **Networking:** Plain REST via `URLSession` + async/await (no Firebase SDK).
+- **Caching:** Lightweight in-memory image cache so images stay visible after fast scrolling.
 
+## Project map
 ```
 WallpyIOS
-├── App              # App entry point + dependency container
-├── Config           # Firebase configuration + loaders
-├── Models           # Data models that mirror Firebase data
-├── Networking       # REST client for Firebase
-├── Services         # Imgur URL helpers & Photo Library integration
-├── ViewModels       # ObservableObject state containers
-└── Views            # SwiftUI screens and components
+├── App              # App entry + dependency container
+├── Config           # Firebase configuration and loader
+├── Models           # Wallpaper model with URL shaping
+├── Networking       # Firebase REST client
+├── Services         # Imgur URL transformer, cache, Photo Library
+├── ViewModels       # ObservableObject state
+└── Views            # SwiftUI screens/components (grid, detail, settings)
 ```
 
-## Firebase configuration
+## Notes
+- iOS cannot set the system wallpaper programmatically; users save to Photos and apply manually.
+- Share uses the actual image (not just the URL).
+- If you add auth or change Firebase paths, update `FirebaseConfig.plist` accordingly.
 
-The app reads `WallpyIOS/WallpyIOS/Config/FirebaseConfig.plist` at runtime. Update the values with your own Firebase database URL and categories. If you are already using `google-services.json` in Android, you can find the corresponding Realtime Database URL in the Firebase console under **Project Settings → Service accounts**.
-
-## Getting started
-
-1. Open `WallpyIOS/WallpyIOS.xcodeproj` in Xcode 15 or newer.
-2. Select the `WallpyIOS` scheme and an iOS 15+ device/simulator.
-3. Update `FirebaseConfig.plist` with your database URL if needed.
-4. Build & run.
-
-## Feature parity highlights
-
-* Category browsing identical to Android (`All`, `Anime`, `Girls`, etc.).
-* Grid + detail preview with Imgur thumbnail/HD conversion.
-* Manual update check hitting the `CurrentVersion` node.
-* Save wallpaper to Photos and share via the system sheet (iOS does not allow setting the wallpaper programmatically, so users are guided to the Photos app instead).
-
-## Creating a GitHub repository
-
-This environment cannot push to GitHub directly. Once you pull these changes locally you can create a new repository by running:
-
-```bash
-git init
-git add .
-git commit -m "Add WallpyIOS"
-gh repo create your-org/WallpyIOS --public --source=. --remote=origin --push
-```
-
-Replace `your-org` with the GitHub account or organization that should host the project.
+## Attribution
+Wallpy iOS is a faithful Apple-native clone of my own Wallpy Android app (2020) — same creator, same pipeline, new platform.
