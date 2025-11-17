@@ -3,11 +3,27 @@ import SwiftUI
 struct SettingsView: View {
     @Binding var hdThumbnailsEnabled: Bool
     let remoteVersion: Int?
+    private let logoSize: CGFloat = 120
 
     var body: some View {
         if #available(iOS 16.0, *) {
             NavigationStack {
                 Form {
+                    VStack(spacing: 12) {
+                        Spacer(minLength: 8)
+                        Image("WallpyLogo")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: logoSize, height: logoSize)
+                            .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                            .shadow(color: .black.opacity(0.12), radius: 8, x: 0, y: 4)
+                        Text("Wallpy iOS")
+                            .font(.title3.weight(.semibold))
+                    }
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .listRowInsets(EdgeInsets())
+                    .listRowSeparator(.hidden)
+
                     Section(header: Text("Display")) {
                         Toggle("Use HD thumbnails", isOn: $hdThumbnailsEnabled)
                             .toggleStyle(SwitchToggleStyle(tint: .accentColor))

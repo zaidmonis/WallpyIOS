@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "wallpy.png",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}
