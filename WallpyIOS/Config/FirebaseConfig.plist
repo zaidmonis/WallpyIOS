@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>databaseURL</key>
+	<string>https://wally-28638.firebaseio.com</string>
+	<key>categories</key>
+	<array>
+		<string>All</string>
+		<string>Anime</string>
+		<string>Girls</string>
+		<string>iPhone</string>
+		<string>Amoled</string>
+		<string>Sports</string>
+		<string>Nature</string>
+		<string>3D</string>
+		<string>Animals</string>
+		<string>CityScapes</string>
+		<string>Abstract</string>
+		<string>Cars</string>
+	</array>
+	<key>thumbnailQualitySuffix</key>
+	<string>m</string>
+	<key>preferredThumbnailSuffix</key>
+	<string>l</string>
+	<key>fullSizeQualitySuffix</key>
+	<string>h</string>
+	<key>versionNode</key>
+	<string>CurrentVersion</string>
+</dict>
+</plist>
