@@ -19,6 +19,9 @@ struct SettingsView: View {
                             .shadow(color: .black.opacity(0.12), radius: 8, x: 0, y: 4)
                         Text("Wallpy iOS")
                             .font(.title3.weight(.semibold))
+                        Text("Developed by: Mohd Zaid")
+                            .font(.footnote)
+                            .foregroundColor(.secondary)
                     }
                     .frame(maxWidth: .infinity, alignment: .center)
                     .listRowInsets(EdgeInsets())
