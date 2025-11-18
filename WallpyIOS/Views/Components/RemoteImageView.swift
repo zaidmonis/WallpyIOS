@@ -40,6 +40,9 @@ struct RemoteImageView: View {
 
 @MainActor
 private final class ImageLoader: ObservableObject {
+    private let minImageByteSize = 10 * 1024 // Avoid caching tiny placeholder responses
+    private let maxRetries = 3
+    private enum LoadError: Error { case tooSmall, decodeFailed }
     enum State {
         case idle
         case loading
@@ -52,6 +55,7 @@ private final class ImageLoader: ObservableObject {
     private let url: URL
     private let cache: ImageCache
     private var task: Task<Void, Never>?
+    private var attempts = 0
 
     init(url: URL, cache: ImageCache = .shared) {
         self.url = url
@@ -63,25 +67,38 @@ private final class ImageLoader: ObservableObject {
         if case .success = state { return }
 
         if let cached = cache.image(for: url) {
+            attempts = 0
             state = .success(cached)
             return
         }
 
+        attempts += 1
         state = .loading
         task = Task { [weak self] in
             guard let self else { return }
             do {
                 let (data, _) = try await URLSession.shared.data(from: url)
+                guard data.count >= minImageByteSize else {
+                    throw LoadError.tooSmall
+                }
                 if let image = UIImage(data: data) {
                     await MainActor.run {
+                        self.attempts = 0
                         self.cache.store(image: image, for: self.url)
                         self.state = .success(image)
                     }
                 } else {
-                    await MainActor.run { self.state = .failed }
+                    throw LoadError.decodeFailed
                 }
             } catch {
-                await MainActor.run { self.state = .failed }
+                if Task.isCancelled { return }
+                if self.attempts < self.maxRetries {
+                    await MainActor.run { self.state = .idle }
+                    try? await Task.sleep(nanoseconds: 300_000_000) // 0.3s
+                    await MainActor.run { self.load() }
+                } else {
+                    await MainActor.run { self.state = .failed }
+                }
             }
         }
     }

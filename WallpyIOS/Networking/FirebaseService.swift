@@ -36,6 +36,31 @@ struct FirebaseService {
         return urlStrings.compactMap { Wallpaper(urlString: $0, transformer: transformer) }
     }
 
+    func fetchCategories() async throws -> [String] {
+        let url = config.databaseURL.appendingPathExtension("json")
+        print("FirebaseService request: \(url.absoluteString)")
+        let (data, response) = try await session.data(from: url)
+        try validate(requestURL: url, response: response, data: data)
+
+        let json = try JSONSerialization.jsonObject(with: data, options: [])
+        guard let dict = json as? [String: Any] else {
+            throw URLError(.cannotParseResponse)
+        }
+
+        let names = dict.compactMap { key, value -> String? in
+            if key == config.versionNode { return nil }
+            if value is [Any] { return key }
+            if value is [String: Any] { return key }
+            return nil
+        }
+        .sorted()
+
+        if names.isEmpty {
+            throw URLError(.cannotParseResponse)
+        }
+        return names
+    }
+
     func fetchRemoteAppVersion() async throws -> Int {
         let url = config.databaseURL.appendingPathComponent("\(config.versionNode).json")
         print("FirebaseService request: \(url.absoluteString)")

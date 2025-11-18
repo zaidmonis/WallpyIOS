@@ -6,13 +6,14 @@ struct ContentView: View {
     @Binding private var hdThumbnailsEnabled: Bool
     @State private var isShowingSettings = false
     @State private var selectedWallpaper: Wallpaper?
-    private let categories: [WallpaperCategory]
+    @State private var categories: [WallpaperCategory]
+    @State private var didLoadRemoteCategories = false
 
     init(environment: AppEnvironment, hdThumbnailsEnabled: Binding<Bool>) {
         _environment = ObservedObject(initialValue: environment)
-        let categories = WallpaperCategory.buildList(from: environment.config)
-        self.categories = categories
-        let defaultCategory = categories.first ?? WallpaperCategory(id: "All")
+        let initialCategories = WallpaperCategory.buildList(from: environment.config)
+        _categories = State(initialValue: initialCategories)
+        let defaultCategory = initialCategories.first ?? WallpaperCategory(id: "All")
         _viewModel = StateObject(wrappedValue: WallpaperGridViewModel(
             service: environment.firebaseService,
             transformer: environment.urlTransformer,
@@ -22,44 +23,64 @@ struct ContentView: View {
     }
 
     var body: some View {
-        if #available(iOS 16.0, *) {
-            NavigationStack {
-                VStack(spacing: 8) {
-                    CategoryPicker(categories: categories, selection: $viewModel.selectedCategory)
-                        .padding(.horizontal)
-                        .padding(.top)
-                    
-                    content
-                }
-                .navigationTitle("Wallpy")
-                .toolbar {
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        Button {
-                            isShowingSettings = true
-                        } label: {
-                            Image(systemName: "slider.horizontal.3")
+        Group {
+            if #available(iOS 16.0, *) {
+                NavigationStack {
+                    VStack(spacing: 8) {
+                        CategoryPicker(categories: categories, selection: $viewModel.selectedCategory)
+                            .padding(.horizontal)
+                            .padding(.top)
+                        
+                        content
+                    }
+                    .navigationTitle("Wallpy")
+                    .toolbar {
+                        ToolbarItem(placement: .navigationBarTrailing) {
+                            Button {
+                                isShowingSettings = true
+                            } label: {
+                                Image(systemName: "slider.horizontal.3")
+                            }
                         }
                     }
+                    .task(id: viewModel.selectedCategory.id) {
+                        await viewModel.reload()
+                    }
+                    .task {
+                        await environment.refreshRemoteVersion()
+                    }
+                    .sheet(isPresented: $isShowingSettings) {
+                        SettingsView(hdThumbnailsEnabled: $hdThumbnailsEnabled, remoteVersion: environment.latestRemoteVersion)
+                    }
+                    .sheet(item: $selectedWallpaper) { wallpaper in
+                        WallpaperDetailView(
+                            wallpaper: wallpaper,
+                            useHDPreview: hdThumbnailsEnabled,
+                            photoLibraryService: environment.photoLibraryService
+                        )
+                    }
                 }
-                .task(id: viewModel.selectedCategory.id) {
-                    await viewModel.reload()
-                }
-                .task {
-                    await environment.refreshRemoteVersion()
-                }
-                .sheet(isPresented: $isShowingSettings) {
-                    SettingsView(hdThumbnailsEnabled: $hdThumbnailsEnabled, remoteVersion: environment.latestRemoteVersion)
-                }
-                .sheet(item: $selectedWallpaper) { wallpaper in
-                    WallpaperDetailView(
-                        wallpaper: wallpaper,
-                        useHDPreview: hdThumbnailsEnabled,
-                        photoLibraryService: environment.photoLibraryService
-                    )
-                }
+            } else {
+                Text("Requires iOS 16 or later.")
+                    .padding()
             }
-        } else {
-            // Fallback on earlier versions
+        }
+        .onReceive(environment.$categories) { newCategories in
+            guard didLoadRemoteCategories, !newCategories.isEmpty else { return }
+            categories = newCategories
+        }
+        .task {
+            guard !didLoadRemoteCategories else { return }
+            didLoadRemoteCategories = true
+            await environment.refreshCategories()
+            let newCategories = environment.categories
+            guard !newCategories.isEmpty else { return }
+            categories = newCategories
+            if !newCategories.contains(viewModel.selectedCategory),
+               let first = newCategories.first {
+                viewModel.selectedCategory = first
+                Task { await viewModel.reload() }
+            }
         }
     }
 

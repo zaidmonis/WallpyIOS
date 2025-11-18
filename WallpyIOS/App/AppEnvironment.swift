@@ -9,6 +9,7 @@ final class AppEnvironment: ObservableObject {
     let urlTransformer: ImgurURLTransformer
 
     @Published var latestRemoteVersion: Int?
+    @Published var categories: [WallpaperCategory] = []
 
     init() {
         let loader = FirebaseConfigLoader()
@@ -25,6 +26,7 @@ final class AppEnvironment: ObservableObject {
         firebaseService = FirebaseService(config: config)
         photoLibraryService = PhotoLibraryService()
         urlTransformer = ImgurURLTransformer(config: config)
+        categories = WallpaperCategory.buildList(from: config)
     }
 
     func refreshRemoteVersion() async {
@@ -32,6 +34,15 @@ final class AppEnvironment: ObservableObject {
             latestRemoteVersion = try await firebaseService.fetchRemoteAppVersion()
         } catch {
             latestRemoteVersion = nil
+        }
+    }
+
+    func refreshCategories() async {
+        do {
+            let names = try await firebaseService.fetchCategories()
+            categories = names.map { WallpaperCategory(id: $0) }
+        } catch {
+            // Keep existing categories on failure.
         }
     }
 }

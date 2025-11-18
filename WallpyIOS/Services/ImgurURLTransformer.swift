@@ -28,28 +28,33 @@ struct ImgurURLTransformer {
     }
 
     private func stripKnownSuffixes(from url: URL) -> URL {
-        var absolute = url.absoluteString
+        guard let comps = components(for: url) else { return url }
         let suffixes = [thumbnailSuffix, preferredThumbnailSuffix, fullSizeSuffix]
-        for ext in supportedExtensions {
-            for suffix in suffixes {
-                let token = "\(suffix).\(ext)"
-                if absolute.contains(token) {
-                    absolute = absolute.replacingOccurrences(of: token, with: ".\(ext)")
-                }
+        for suffix in suffixes {
+            if comps.name.hasSuffix(suffix) {
+                let trimmed = String(comps.name.dropLast(suffix.count))
+                return rebuildURL(directory: comps.directory, name: trimmed, ext: comps.ext) ?? url
             }
         }
-        return URL(string: absolute) ?? url
+        return url
     }
 
     private func apply(suffix: String, toBase base: URL) -> URL {
-        var absolute = base.absoluteString
-        for ext in supportedExtensions {
-            let token = ".\(ext)"
-            if absolute.hasSuffix(token) {
-                absolute = absolute.replacingOccurrences(of: token, with: "\(suffix)\(token)")
-                break
-            }
-        }
-        return URL(string: absolute) ?? base
+        guard let comps = components(for: base) else { return base }
+        // Avoid double-appending if it already ends with the suffix in the name.
+        let name = comps.name.hasSuffix(suffix) ? comps.name : "\(comps.name)\(suffix)"
+        return rebuildURL(directory: comps.directory, name: name, ext: comps.ext) ?? base
+    }
+
+    private func components(for url: URL) -> (directory: URL, name: String, ext: String)? {
+        let ext = url.pathExtension
+        guard supportedExtensions.contains(ext.lowercased()) else { return nil }
+        let directory = url.deletingLastPathComponent()
+        let name = url.deletingPathExtension().lastPathComponent
+        return (directory, name, ext)
+    }
+
+    private func rebuildURL(directory: URL, name: String, ext: String) -> URL? {
+        directory.appendingPathComponent("\(name).\(ext)")
     }
 }
