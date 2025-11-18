@@ -37,7 +37,8 @@ struct FirebaseService {
     }
 
     func fetchCategories() async throws -> [String] {
-        let url = config.databaseURL.appendingPathExtension("json")
+        // Root snapshot; Firebase RTDB expects /.json
+        let url = config.databaseURL.appendingPathComponent(".json")
         print("FirebaseService request: \(url.absoluteString)")
         let (data, response) = try await session.data(from: url)
         try validate(requestURL: url, response: response, data: data)

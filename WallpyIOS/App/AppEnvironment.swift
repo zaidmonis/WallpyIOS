@@ -26,7 +26,6 @@ final class AppEnvironment: ObservableObject {
         firebaseService = FirebaseService(config: config)
         photoLibraryService = PhotoLibraryService()
         urlTransformer = ImgurURLTransformer(config: config)
-        categories = WallpaperCategory.buildList(from: config)
     }
 
     func refreshRemoteVersion() async {
@@ -40,9 +39,12 @@ final class AppEnvironment: ObservableObject {
     func refreshCategories() async {
         do {
             let names = try await firebaseService.fetchCategories()
-            categories = names.map { WallpaperCategory(id: $0) }
+            categories = names.sorted().map { WallpaperCategory(id: $0) }
         } catch {
-            // Keep existing categories on failure.
+            // Fallback to config-defined categories if nothing has been loaded yet.
+            if categories.isEmpty {
+                categories = WallpaperCategory.buildList(from: config).sorted { $0.id < $1.id }
+            }
         }
     }
 }

@@ -11,9 +11,8 @@ struct ContentView: View {
 
     init(environment: AppEnvironment, hdThumbnailsEnabled: Binding<Bool>) {
         _environment = ObservedObject(initialValue: environment)
-        let initialCategories = WallpaperCategory.buildList(from: environment.config)
-        _categories = State(initialValue: initialCategories)
-        let defaultCategory = initialCategories.first ?? WallpaperCategory(id: "All")
+        _categories = State(initialValue: [])
+        let defaultCategory = WallpaperCategory.buildList(from: environment.config).first ?? WallpaperCategory(id: "All")
         _viewModel = StateObject(wrappedValue: WallpaperGridViewModel(
             service: environment.firebaseService,
             transformer: environment.urlTransformer,

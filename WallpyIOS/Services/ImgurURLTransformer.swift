@@ -13,37 +13,22 @@ struct ImgurURLTransformer {
     }
 
     func thumbnailURL(for original: URL) -> URL {
-        let base = stripKnownSuffixes(from: original)
-        return apply(suffix: preferredThumbnailSuffix, toBase: base)
+        apply(suffix: preferredThumbnailSuffix, to: original)
     }
 
     func fullResolutionURL(for original: URL) -> URL {
-        let base = stripKnownSuffixes(from: original)
-        return apply(suffix: fullSizeSuffix, toBase: base)
+        apply(suffix: fullSizeSuffix, to: original)
     }
 
-    /// Removes any known quality suffix to get the original/origin URL stored in Firebase.
+    /// Return the given URL unchanged.
     func originalImageURL(for original: URL) -> URL {
-        stripKnownSuffixes(from: original)
+        original
     }
 
-    private func stripKnownSuffixes(from url: URL) -> URL {
-        guard let comps = components(for: url) else { return url }
-        let suffixes = [thumbnailSuffix, preferredThumbnailSuffix, fullSizeSuffix]
-        for suffix in suffixes {
-            if comps.name.hasSuffix(suffix) {
-                let trimmed = String(comps.name.dropLast(suffix.count))
-                return rebuildURL(directory: comps.directory, name: trimmed, ext: comps.ext) ?? url
-            }
-        }
-        return url
-    }
-
-    private func apply(suffix: String, toBase base: URL) -> URL {
-        guard let comps = components(for: base) else { return base }
-        // Avoid double-appending if it already ends with the suffix in the name.
-        let name = comps.name.hasSuffix(suffix) ? comps.name : "\(comps.name)\(suffix)"
-        return rebuildURL(directory: comps.directory, name: name, ext: comps.ext) ?? base
+    private func apply(suffix: String, to original: URL) -> URL {
+        guard let comps = components(for: original) else { return original }
+        let nameWithSuffix = comps.name + suffix
+        return rebuildURL(directory: comps.directory, name: nameWithSuffix, ext: comps.ext) ?? original
     }
 
     private func components(for url: URL) -> (directory: URL, name: String, ext: String)? {
