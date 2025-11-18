@@ -27,6 +27,7 @@
 		1A1A00271 /* FirebaseConfig.plist in Resources */ = {isa = PBXBuildFile; fileRef = 1A1A01011 /* FirebaseConfig.plist */; };
 		1A1A00281 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1A1A01080 /* Assets.xcassets */; };
 		1A1A00291 /* Preview Content/Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1A1A01081 /* Preview Content/Preview Assets.xcassets */; };
+		1A1A00301 /* FavoritesStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A1A01043 /* FavoritesStore.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -41,6 +42,7 @@
 		1A1A01040 /* ImageCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageCache.swift; sourceTree = "<group>"; };
 		1A1A01041 /* PhotoLibraryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoLibraryService.swift; sourceTree = "<group>"; };
 		1A1A01042 /* ImgurURLTransformer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImgurURLTransformer.swift; sourceTree = "<group>"; };
+		1A1A01043 /* FavoritesStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoritesStore.swift; sourceTree = "<group>"; };
 		1A1A01050 /* WallpaperGridViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WallpaperGridViewModel.swift; sourceTree = "<group>"; };
 		1A1A01060 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		1A1A01061 /* WallpaperGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WallpaperGridView.swift; sourceTree = "<group>"; };
@@ -130,6 +132,7 @@
 				1A1A01040 /* ImageCache.swift */,
 				1A1A01041 /* PhotoLibraryService.swift */,
 				1A1A01042 /* ImgurURLTransformer.swift */,
+				1A1A01043 /* FavoritesStore.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -269,6 +272,7 @@
 				1A1A00241 /* RemoteImageView.swift in Sources */,
 				1A1A00251 /* SettingsView.swift in Sources */,
 				1A1A00261 /* WallpaperCard.swift in Sources */,
+				1A1A00301 /* FavoritesStore.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

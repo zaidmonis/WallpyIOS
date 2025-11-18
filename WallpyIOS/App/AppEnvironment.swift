@@ -7,6 +7,7 @@ final class AppEnvironment: ObservableObject {
     let firebaseService: FirebaseService
     let photoLibraryService: PhotoLibraryService
     let urlTransformer: ImgurURLTransformer
+    let favoritesStore: FavoritesStore
 
     @Published var latestRemoteVersion: Int?
     @Published var categories: [WallpaperCategory] = []
@@ -26,6 +27,7 @@ final class AppEnvironment: ObservableObject {
         firebaseService = FirebaseService(config: config)
         photoLibraryService = PhotoLibraryService()
         urlTransformer = ImgurURLTransformer(config: config)
+        favoritesStore = FavoritesStore()
     }
 
     func refreshRemoteVersion() async {
@@ -39,11 +41,16 @@ final class AppEnvironment: ObservableObject {
     func refreshCategories() async {
         do {
             let names = try await firebaseService.fetchCategories()
-            categories = names.sorted().map { WallpaperCategory(id: $0) }
+            var mapped = names.sorted().map { WallpaperCategory(id: $0) }
+            // Insert local favorites category at the top.
+            mapped.insert(WallpaperCategory(id: "❤️Favourites"), at: 0)
+            categories = mapped
         } catch {
             // Fallback to config-defined categories if nothing has been loaded yet.
             if categories.isEmpty {
-                categories = WallpaperCategory.buildList(from: config).sorted { $0.id < $1.id }
+                var mapped = WallpaperCategory.buildList(from: config).sorted { $0.id < $1.id }
+                mapped.insert(WallpaperCategory(id: "❤️Favourites"), at: 0)
+                categories = mapped
             }
         }
     }

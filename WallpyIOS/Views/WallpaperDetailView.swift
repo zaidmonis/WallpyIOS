@@ -5,6 +5,8 @@ struct WallpaperDetailView: View {
     let wallpaper: Wallpaper
     let useHDPreview: Bool
     let photoLibraryService: PhotoLibraryService
+    let isFavorite: Bool
+    let onToggleFavorite: () -> Void
     @State private var isSaving = false
     @State private var saveError: String?
     @State private var isShowingError = false
@@ -32,6 +34,13 @@ struct WallpaperDetailView: View {
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) {
                         Button("Close") { dismiss() }
+                    }
+                    ToolbarItem(placement: .primaryAction) {
+                        Button {
+                            onToggleFavorite()
+                        } label: {
+                            Image(systemName: isFavorite ? "heart.fill" : "heart")
+                        }
                     }
                 }
                 .alert("Unable to save", isPresented: $isShowingError, actions: {

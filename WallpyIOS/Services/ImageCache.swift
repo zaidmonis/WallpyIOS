@@ -1,6 +1,5 @@
 import SwiftUI
 
-@MainActor
 final class ImageCache: ObservableObject {
     static let shared = ImageCache()
     private let cache = NSCache<NSURL, UIImage>()

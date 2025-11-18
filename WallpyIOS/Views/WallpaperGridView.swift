@@ -3,6 +3,8 @@ import SwiftUI
 struct WallpaperGridView: View {
     let wallpapers: [Wallpaper]
     let hdThumbnailsEnabled: Bool
+    let onToggleFavorite: (Wallpaper) -> Void
+    let isFavorite: (Wallpaper) -> Bool
     let onSelect: (Wallpaper) -> Void
     @State private var toastMessage: String?
     @State private var showToast = false
@@ -28,7 +30,9 @@ struct WallpaperGridView: View {
                                 WallpaperCard(
                                     wallpaper: wallpaper,
                                     hdThumbnailsEnabled: hdThumbnailsEnabled,
-                                    width: itemWidth
+                                    width: itemWidth,
+                                    isFavorite: isFavorite(wallpaper),
+                                    onToggleFavorite: { onToggleFavorite(wallpaper) }
                                 )
                             }
                             .buttonStyle(.plain)

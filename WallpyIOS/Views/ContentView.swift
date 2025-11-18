@@ -11,11 +11,12 @@ struct ContentView: View {
 
     init(environment: AppEnvironment, hdThumbnailsEnabled: Binding<Bool>) {
         _environment = ObservedObject(initialValue: environment)
-        _categories = State(initialValue: [])
-        let defaultCategory = WallpaperCategory.buildList(from: environment.config).first ?? WallpaperCategory(id: "All")
+        _categories = State(initialValue: [WallpaperCategory(id: "❤️Favourites")])
+        let defaultCategory = WallpaperCategory(id: "All")
         _viewModel = StateObject(wrappedValue: WallpaperGridViewModel(
             service: environment.firebaseService,
             transformer: environment.urlTransformer,
+            favoritesStore: environment.favoritesStore,
             defaultCategory: defaultCategory
         ))
         _hdThumbnailsEnabled = hdThumbnailsEnabled
@@ -47,20 +48,24 @@ struct ContentView: View {
                     }
                     .task {
                         await environment.refreshRemoteVersion()
-                    }
-                    .sheet(isPresented: $isShowingSettings) {
-                        SettingsView(hdThumbnailsEnabled: $hdThumbnailsEnabled, remoteVersion: environment.latestRemoteVersion)
-                    }
-                    .sheet(item: $selectedWallpaper) { wallpaper in
-                        WallpaperDetailView(
-                            wallpaper: wallpaper,
-                            useHDPreview: hdThumbnailsEnabled,
-                            photoLibraryService: environment.photoLibraryService
-                        )
-                    }
                 }
-            } else {
-                Text("Requires iOS 16 or later.")
+                .sheet(isPresented: $isShowingSettings) {
+                    SettingsView(hdThumbnailsEnabled: $hdThumbnailsEnabled, remoteVersion: environment.latestRemoteVersion)
+                }
+                .sheet(item: $selectedWallpaper) { wallpaper in
+                    WallpaperDetailView(
+                        wallpaper: wallpaper,
+                        useHDPreview: hdThumbnailsEnabled,
+                        photoLibraryService: environment.photoLibraryService,
+                        isFavorite: viewModel.isFavorite(wallpaper),
+                        onToggleFavorite: {
+                            viewModel.toggleFavorite(wallpaper)
+                        }
+                    )
+                }
+            }
+        } else {
+            Text("Requires iOS 16 or later.")
                     .padding()
             }
         }
@@ -93,6 +98,8 @@ struct ContentView: View {
             WallpaperGridView(
                 wallpapers: viewModel.wallpapers,
                 hdThumbnailsEnabled: hdThumbnailsEnabled,
+                onToggleFavorite: { viewModel.toggleFavorite($0) },
+                isFavorite: { viewModel.isFavorite($0) },
                 onSelect: { selectedWallpaper = $0 }
             )
             .frame(maxWidth: .infinity, maxHeight: .infinity)
