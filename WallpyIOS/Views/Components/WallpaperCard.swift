@@ -21,24 +21,33 @@ struct WallpaperCard: View {
                         .stroke(Color.white.opacity(0.08), lineWidth: 1)
                 )
 
-            Button(action: onToggleFavorite) {
+            Button(action: {
+                onToggleFavorite()
+                triggerBounce()
+            }) {
                 Image(systemName: isFavorite ? "heart.fill" : "heart")
                     .foregroundColor(isFavorite ? .red : .white)
                     .padding(10)
                     .background(Color.black.opacity(0.35))
                     .clipShape(Circle())
-                    .scaleEffect(animateHeart ? 1.25 : 1.0)
-                    .animation(.spring(response: 0.25, dampingFraction: 0.5), value: animateHeart)
+                    .scaleEffect(animateHeart ? 1.15 : 1.0)
+                    .animation(.spring(response: 0.3, dampingFraction: 0.5), value: animateHeart)
             }
             .padding(8)
             .onChange(of: isFavorite) { newValue in
                 if newValue {
-                    animateHeart = true
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                        animateHeart = false
-                    }
+                    triggerBounce()
                 }
             }
+        }
+    }
+
+    private func triggerBounce() {
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+            animateHeart = true
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+            animateHeart = false
         }
     }
 }

@@ -30,6 +30,13 @@ struct ContentView: View {
                         CategoryPicker(categories: categories, selection: $viewModel.selectedCategory)
                             .padding(.horizontal)
                             .padding(.top)
+
+                        if environment.isOfflineMode {
+                            Text("Offline mode: showing favourites stored on device")
+                                .font(.footnote.weight(.semibold))
+                                .foregroundColor(.secondary)
+                                .padding(.horizontal)
+                        }
                         
                         content
                     }

@@ -11,6 +11,7 @@ final class AppEnvironment: ObservableObject {
 
     @Published var latestRemoteVersion: Int?
     @Published var categories: [WallpaperCategory] = []
+    @Published var isOfflineMode = false
 
     init() {
         let loader = FirebaseConfigLoader()
@@ -45,12 +46,17 @@ final class AppEnvironment: ObservableObject {
             // Insert local favorites category at the top.
             mapped.insert(WallpaperCategory(id: "❤️Favourites"), at: 0)
             categories = mapped
+            isOfflineMode = false
         } catch {
-            // Fallback to config-defined categories if nothing has been loaded yet.
-            if categories.isEmpty {
+            // No network: if we have favourites, show only that local category.
+            if !favoritesStore.favorites.isEmpty {
+                categories = [WallpaperCategory(id: "❤️Favourites")]
+                isOfflineMode = true
+            } else if categories.isEmpty {
                 var mapped = WallpaperCategory.buildList(from: config).sorted { $0.id < $1.id }
                 mapped.insert(WallpaperCategory(id: "❤️Favourites"), at: 0)
                 categories = mapped
+                isOfflineMode = true
             }
         }
     }

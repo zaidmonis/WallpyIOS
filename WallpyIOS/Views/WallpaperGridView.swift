@@ -6,9 +6,6 @@ struct WallpaperGridView: View {
     let onToggleFavorite: (Wallpaper) -> Void
     let isFavorite: (Wallpaper) -> Bool
     let onSelect: (Wallpaper) -> Void
-    @State private var toastMessage: String?
-    @State private var showToast = false
-    @State private var toastTask: Task<Void, Never>?
 
     var body: some View {
         GeometryReader { proxy in
@@ -19,11 +16,12 @@ struct WallpaperGridView: View {
             let availableWidth = proxy.size.width - (horizontalPadding * 2) - totalSpacing
             let itemWidth = floor(availableWidth / CGFloat(columns))
             let gridLayout = Array(repeating: GridItem(.fixed(itemWidth), spacing: spacing), count: columns)
+            let previewWidth = itemWidth * 2
 
-            ZStack(alignment: .top) {
-                ScrollView {
-                    LazyVGrid(columns: gridLayout, spacing: spacing) {
-                        ForEach(wallpapers) { wallpaper in
+            ScrollView {
+                LazyVGrid(columns: gridLayout, spacing: spacing) {
+                    ForEach(wallpapers) { wallpaper in
+                        if #available(iOS 16.0, *) {
                             Button {
                                 onSelect(wallpaper)
                             } label: {
@@ -36,41 +34,25 @@ struct WallpaperGridView: View {
                                 )
                             }
                             .buttonStyle(.plain)
-                            .simultaneousGesture(
-                                LongPressGesture().onEnded { _ in
-                                    presentToast(wallpaper.originalURL.absoluteString)
+                            .contextMenu {
+                                Button {
+                                    onSelect(wallpaper)
+                                } label: {
+                                    Label("View full size", systemImage: "arrow.up.left.and.arrow.down.right")
                                 }
-                            )
+                            } preview: {
+                                RemoteImageView(url: wallpaper.fullSizeURL)
+                                    .frame(width: previewWidth, height: previewWidth * 16 / 9)
+                                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                            }
+                        } else {
+                            // Fallback on earlier versions
                         }
                     }
-                    .padding(.horizontal, horizontalPadding)
-                    .padding(.bottom)
                 }
-
-                if showToast, let toastMessage {
-                    Text(toastMessage)
-                        .font(.footnote.weight(.semibold))
-                        .foregroundColor(.white)
-                        .padding(.vertical, 8)
-                        .padding(.horizontal, 12)
-                        .background(
-                            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                .fill(Color.black.opacity(0.8))
-                        )
-                        .padding(.top, 12)
-                        .transition(.opacity.combined(with: .move(edge: .top)))
-                }
+                .padding(.horizontal, horizontalPadding)
+                .padding(.bottom)
             }
-        }
-    }
-
-    private func presentToast(_ text: String) {
-        toastTask?.cancel()
-        toastMessage = text
-        showToast = true
-        toastTask = Task { @MainActor in
-            try? await Task.sleep(nanoseconds: 2_000_000_000)
-            showToast = false
         }
     }
 }
