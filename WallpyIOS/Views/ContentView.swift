@@ -8,7 +8,8 @@ struct ContentView: View {
     @State private var selectedWallpaper: Wallpaper?
     @State private var categories: [WallpaperCategory]
     @State private var didLoadRemoteCategories = false
-
+    @State private var showInitialLoadingOverlay = true
+    
     init(environment: AppEnvironment, hdThumbnailsEnabled: Binding<Bool>) {
         _environment = ObservedObject(initialValue: environment)
         _categories = State(initialValue: [WallpaperCategory(id: "❤️Favourites")])
@@ -21,64 +22,26 @@ struct ContentView: View {
         ))
         _hdThumbnailsEnabled = hdThumbnailsEnabled
     }
-
+    
     var body: some View {
-        Group {
-            if #available(iOS 16.0, *) {
-                NavigationStack {
-                    VStack(spacing: 8) {
-                        CategoryPicker(categories: categories, selection: $viewModel.selectedCategory)
-                            .padding(.horizontal)
-                            .padding(.top)
-
-                        if environment.isOfflineMode {
-                            Text("Offline mode: showing favourites stored on device")
-                                .font(.footnote.weight(.semibold))
-                                .foregroundColor(.secondary)
-                                .padding(.horizontal)
-                        }
-                        
-                        content
-                    }
-                    .navigationTitle("Wallpy")
-                    .toolbar {
-                        ToolbarItem(placement: .navigationBarTrailing) {
-                            Button {
-                                isShowingSettings = true
-                            } label: {
-                                Image(systemName: "slider.horizontal.3")
-                            }
-                        }
-                    }
-                    .task(id: viewModel.selectedCategory.id) {
-                        await viewModel.reload()
-                    }
-                    .task {
-                        await environment.refreshRemoteVersion()
-                }
-                .sheet(isPresented: $isShowingSettings) {
-                    SettingsView(hdThumbnailsEnabled: $hdThumbnailsEnabled, remoteVersion: environment.latestRemoteVersion)
-                }
-                .sheet(item: $selectedWallpaper) { wallpaper in
-                    WallpaperDetailView(
-                        wallpaper: wallpaper,
-                        useHDPreview: hdThumbnailsEnabled,
-                        photoLibraryService: environment.photoLibraryService,
-                        isFavorite: viewModel.isFavorite(wallpaper),
-                        onToggleFavorite: {
-                            viewModel.toggleFavorite(wallpaper)
-                        }
-                    )
-                }
-            }
-        } else {
-            Text("Requires iOS 16 or later.")
-                    .padding()
+        ZStack {
+            contentBody
+            if showInitialLoadingOverlay {
+                loadingOverlay
             }
         }
         .onReceive(environment.$categories) { newCategories in
             guard didLoadRemoteCategories, !newCategories.isEmpty else { return }
             categories = newCategories
+        }
+        .onReceive(viewModel.$state) { state in
+            guard showInitialLoadingOverlay else { return }
+            switch state {
+            case .loaded, .failed:
+                showInitialLoadingOverlay = false
+            default:
+                break
+            }
         }
         .task {
             guard !didLoadRemoteCategories else { return }
@@ -90,13 +53,12 @@ struct ContentView: View {
             if !newCategories.contains(viewModel.selectedCategory),
                let first = newCategories.first {
                 viewModel.selectedCategory = first
-                Task { await viewModel.reload() }
             }
         }
     }
-
+    
     @ViewBuilder
-    private var content: some View {
+    private var gridContent: some View {
         switch viewModel.state {
         case .idle, .loading:
             ProgressView("Loading wallpapers…")
@@ -124,6 +86,76 @@ struct ContentView: View {
             }
             .padding()
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+    }
+    @ViewBuilder
+    private var contentBody: some View {
+        if #available(iOS 16.0, *) {
+            NavigationStack {
+                VStack(spacing: 8) {
+                    CategoryPicker(categories: categories, selection: $viewModel.selectedCategory)
+                        .padding(.horizontal)
+                        .padding(.top)
+                    
+                    if environment.isOfflineMode {
+                        Text("Offline mode: showing favourites stored on device")
+                            .font(.footnote.weight(.semibold))
+                            .foregroundColor(.secondary)
+                            .padding(.horizontal)
+                    }
+                    
+                    gridContent
+                }
+                .navigationTitle("Wallpy")
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button {
+                            isShowingSettings = true
+                        } label: {
+                            Image(systemName: "slider.horizontal.3")
+                        }
+                    }
+                }
+                .task(id: viewModel.selectedCategory.id) {
+                    await viewModel.reload()
+                }
+                .task {
+                    await environment.refreshRemoteVersion()
+                }
+                .sheet(isPresented: $isShowingSettings) {
+                    SettingsView(hdThumbnailsEnabled: $hdThumbnailsEnabled, remoteVersion: environment.latestRemoteVersion)
+                }
+                .sheet(item: $selectedWallpaper) { wallpaper in
+                    WallpaperDetailView(
+                        wallpaper: wallpaper,
+                        useHDPreview: hdThumbnailsEnabled,
+                        photoLibraryService: environment.photoLibraryService,
+                        isFavorite: viewModel.isFavorite(wallpaper),
+                        onToggleFavorite: {
+                            viewModel.toggleFavorite(wallpaper)
+                        }
+                    )
+                }
+            }
+        } else {
+            Text("Requires iOS 16 or later.")
+                .padding()
+        }
+    }
+    
+    private var loadingOverlay: some View {
+        ZStack {
+            Color(uiColor: .systemBackground)
+                .ignoresSafeArea()
+            VStack(spacing: 16) {
+                Image("WallpyLogo")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 140, height: 140)
+                ProgressView("Loading wallpapers…")
+                    .progressViewStyle(.circular)
+                    .tint(.secondary)
+            }
         }
     }
 }

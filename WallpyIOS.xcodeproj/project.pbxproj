@@ -27,6 +27,7 @@
 		1A1A00271 /* FirebaseConfig.plist in Resources */ = {isa = PBXBuildFile; fileRef = 1A1A01011 /* FirebaseConfig.plist */; };
 		1A1A00281 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1A1A01080 /* Assets.xcassets */; };
 		1A1A00291 /* Preview Content/Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1A1A01081 /* Preview Content/Preview Assets.xcassets */; };
+		1A1A00311 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 1A1A01082 /* LaunchScreen.storyboard */; };
 		1A1A00301 /* FavoritesStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A1A01043 /* FavoritesStore.swift */; };
 /* End PBXBuildFile section */
 
@@ -53,6 +54,7 @@
 		1A1A01073 /* WallpaperCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WallpaperCard.swift; sourceTree = "<group>"; };
 		1A1A01080 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		1A1A01081 /* Preview Content/Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Content/Preview Assets.xcassets"; sourceTree = "<group>"; };
+		1A1A01082 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		1A1A01090 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -161,6 +163,7 @@
 			children = (
 				1A1A01080 /* Assets.xcassets */,
 				1A1A01081 /* Preview Content/Preview Assets.xcassets */,
+				1A1A01082 /* LaunchScreen.storyboard */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -245,6 +248,7 @@
 				1A1A00271 /* FirebaseConfig.plist in Resources */,
 				1A1A00281 /* Assets.xcassets in Resources */,
 				1A1A00291 /* Preview Content/Preview Assets.xcassets in Resources */,
+				1A1A00311 /* LaunchScreen.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
